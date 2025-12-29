@@ -1614,6 +1614,13 @@ def main_function():
     resolve_hostname = False
     with_ipv6 = False
     geoip2fast_datafile = ""    
+    if '--no-verbose' in sys.argv:
+        no_verbose_mode = True
+        sys.argv.pop(sys.argv.index('--no-verbose'))
+        ncmd = len(sys.argv)
+    else:
+        no_verbose_mode = False
+
     if '-v' in sys.argv or '--verbose' in sys.argv: 
         verbose_mode = True
         if '-v' in sys.argv: sys.argv.pop(sys.argv.index('-v'))
@@ -1641,6 +1648,8 @@ def main_function():
 
     ##──── Downloads all data files available and saves them to the specified path or filename supplied in --dest parameter ─────────────────────
     if '--update-all' in sys.argv: 
+        if not no_verbose_mode:
+            verbose_mode = True
         if '--dest' in sys.argv:
             index = sys.argv.index('--dest')
             try:
@@ -1769,6 +1778,7 @@ Examples:
 General parameters:
   -h, --help          Show this help message and exit.
   -v, --verbose       Enable verbose mode.
+  --no-verbose        Disable verbose mode (useful when it is enabled by default).
   -d, --dns           Enable DNS resolution (hostname lookup).
   -i, --info          Show database information.
 
@@ -1791,8 +1801,10 @@ Tests parameters:
                       Print all IP networks that doesn't have geo information (only for IPv4).
              
 Automatic update:
-  --update-all [-v]    Download all dat.gz files available in the repository below:
+  --update-all [--no-verbose]
+                       Download all dat.gz files available in the repository below:
                        {GEOIP_UPDATE_DAT_URL}
+                       Verbose mode is enabled by default. Use --no-verbose to suppress output.
 
   --update-file <geoip2fast_dat_filename> [-v]
                        Download a specific filename from the repository. Only one file is allowed.
