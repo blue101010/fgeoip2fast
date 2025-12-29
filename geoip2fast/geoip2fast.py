@@ -63,7 +63,7 @@ What's new in v1.2.2 - 20/Jun/2024
 __appid__   = "fgeoip2fast"
 __version__ = "1.2.2"
 
-import sys, os, ctypes, struct, socket, time, subprocess, random, binascii, functools
+import sys, os, ctypes, struct, socket, time, subprocess, random, binascii, functools, hashlib
 import urllib.request, urllib.error, urllib.parse, gzip, pickle, json, random, bisect, re, ipaddress
 import geoip2fast as _ 
 
@@ -730,7 +730,7 @@ class GeoIP2Fast(object):
                 last_ip2int = first_ip2int + numIPsv6[netlen]-1
             return matchRoot, matchChunk, first_ip2int, last_ip2int, netlen
         except Exception as ERR:
-            return GeoIPError("Failed at _main_index_lookup: %s"%(str(ERR)))
+            raise GeoIPError("Failed at _main_index_lookup: %s"%(str(ERR)))
     
     # @functools.lru_cache(maxsize=DEFAULT_LRU_CACHE_SIZE, typed=False)
     def _country_lookup(self,match_root,match_chunk):
@@ -741,7 +741,7 @@ class GeoIP2Fast(object):
             country_code = self.error_code_private_networks if is_private else country_code
             return country_code, country_name, is_private
         except Exception as ERR:
-            return GeoIPError("Failed at _country_lookup: %s"%(str(ERR)))
+            raise GeoIPError("Failed at _country_lookup: %s"%(str(ERR)))
 
     # @functools.lru_cache(maxsize=300, typed=False)
     def _city_country_name_lookup(self,country_code):
@@ -752,7 +752,7 @@ class GeoIP2Fast(object):
             country_code = self.error_code_private_networks if is_private else country_code
             return country_code, country_name, is_private
         except Exception as ERR:
-            return GeoIPError("Failed at _city_country_name_lookup: %s"%(str(ERR)))
+            raise GeoIPError("Failed at _city_country_name_lookup: %s"%(str(ERR)))
 
     # @functools.lru_cache(maxsize=DEFAULT_LRU_CACHE_SIZE, typed=False)
     def _city_lookup(self,match_root,match_chunk):
@@ -763,7 +763,7 @@ class GeoIP2Fast(object):
             city_info = CityDetail(city_name)
             return country_code, country_name, city_info, is_private
         except Exception as ERR:
-            return GeoIPError("Failed at _country_lookup: %s"%(str(ERR)))
+            raise GeoIPError("Failed at _country_lookup: %s"%(str(ERR)))
 
     # @functools.lru_cache(maxsize=DEFAULT_LRU_CACHE_SIZE, typed=False)
     def _asn_lookup(self,iplong):
@@ -1068,6 +1068,7 @@ class GeoIP2Fast(object):
             joinedFirstIPList = join_list(mainListFirstIP)
             joinedNetLengthList = join_list(mainListNetlength)
             startTime = time.perf_counter()
+            old_last_iplong = 0
             for N in range(len(joinedFirstIPList)):
                 first_iplong = joinedFirstIPList[N]
                 if (first_iplong > numIPsv4[0]) and (with_ipv6 == False):
@@ -1403,12 +1404,14 @@ class UpdateGeoIP2Fast(object):
                     
 
                     try:
+                        sha256_hash = hashlib.sha256()
                         with open(final_path, 'wb') as output_file:
                             self._print_verbose(f"- Downloading {file_name}... 0%", end="", flush=True)
                             while True:
                                 chunk = response.read(chunk_size)
                                 if not chunk:
                                     break
+                                sha256_hash.update(chunk)
                                 output_file.write(chunk)
                                 downloaded_size += len(chunk)
                                 percent = (downloaded_size / total_size) * 100 if total_size > 0 else 0
@@ -1419,6 +1422,15 @@ class UpdateGeoIP2Fast(object):
                         return self.update_error(f"- Error saving file {str(ERR)}")
                     self._print_verbose("")                                
                     self._print_verbose(f"- File saved to: {os.path.join(destination_path,destination_filename)}")
+                    self._print_verbose(f"- SHA256: {sha256_hash.hexdigest()}")
+                    
+                    try:
+                        with gzip.open(final_path, 'rb') as f:
+                            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = SafeUnpickler(f).load()
+                            self._print_verbose(f"- Content Analysis: {format_num(totalNetworks)} IP ranges found.")
+                    except Exception as e:
+                        self._print_verbose(f"- Content Analysis Failed: {str(e)}")
+
                     return {'error':None,
                             'url':url,
                             'remote_filename':file_name,
@@ -1427,6 +1439,7 @@ class UpdateGeoIP2Fast(object):
                             'file_destination':os.path.join(destination_path,destination_filename),
                             'average_download_speed':format_bytes(total_size)+"/sec",
                             'elapsed_time':'%.6f'%(elapsed_time),
+                            'sha256': sha256_hash.hexdigest()
                             }
             except urllib.error.URLError as ERR:
                 error_message = f"- Error downloading file: {str(ERR)} - {url}"

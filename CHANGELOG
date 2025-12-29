@@ -17,6 +17,8 @@ License: MIT
 ############################################################################
 
 What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025
+- Enhance error handling and add SHA256 checksum verification during file downloads to ensure data integrity.
+- Update documentation to reflect recent changes and improvements in the library.
 - CLI Enhancements: Improved command-line interface with support for long arguments (e.g., `--verbose`, `--dns`, `--help`), added an examples section to help output, and updated usage instructions.
 - Installation Improvements: Added `kali-install.py` for compliant installation on Kali Linux/Debian (handling PEP 668), and modernized `setup.py` by removing deprecated code and fixing license classifiers.
 - Security & Testing: Implemented safe unpickling and path traversal protection in update methods, and added `testfgeoip.py` for functional testing.
