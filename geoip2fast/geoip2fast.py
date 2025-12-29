@@ -1614,14 +1614,16 @@ def main_function():
     resolve_hostname = False
     with_ipv6 = False
     geoip2fast_datafile = ""    
-    if '-v' in sys.argv: 
+    if '-v' in sys.argv or '--verbose' in sys.argv: 
         verbose_mode = True
-        sys.argv.pop(sys.argv.index('-v'))
-        ncmd -= 1
-    if '-d' in sys.argv: 
+        if '-v' in sys.argv: sys.argv.pop(sys.argv.index('-v'))
+        if '--verbose' in sys.argv: sys.argv.pop(sys.argv.index('--verbose'))
+        ncmd = len(sys.argv)
+    if '-d' in sys.argv or '--dns' in sys.argv: 
         resolve_hostname = True
-        sys.argv.pop(sys.argv.index('-d'))
-        ncmd -= 1
+        if '-d' in sys.argv: sys.argv.pop(sys.argv.index('-d'))
+        if '--dns' in sys.argv: sys.argv.pop(sys.argv.index('--dns'))
+        ncmd = len(sys.argv)
     if '--with-ipv6' in sys.argv: 
         with_ipv6 = True
         sys.argv.pop(sys.argv.index('--with-ipv6'))
@@ -1754,9 +1756,15 @@ def main_function():
                 result.pp_json(print_result=True)
         sys.exit(0)
     else:
-        print(f"fgeoip2fast v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h] [-v] [-d] [-i] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
+        print(f"fgeoip2fast v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [-d|--dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
         if '-h' in sys.argv or '--help' in sys.argv:
             print(f"""
+General parameters:
+  -h, --help          Show this help message and exit.
+  -v, --verbose       Enable verbose mode.
+  -d, --dns           Enable DNS resolution (hostname lookup).
+  -i, --info          Show database information.
+
 Tests parameters:
   --speed-test        Do a speed test with 1 million on randomic IP addresses.                                               
   
