@@ -12,7 +12,6 @@ dist/
 build
 *turbo*.py
 *.tar.gz
-test*.py
 old*.py
 *old.py
 new*.py
