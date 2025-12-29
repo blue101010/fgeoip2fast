@@ -1464,7 +1464,18 @@ class UpdateGeoIP2Fast(object):
             destination_path = destination_path[:-1]
         if destination_path[-1] != "/":
             destination_path += "/"
-        
+
+        ##──── Path traversal protection: Ensure destination is within allowed directories ───────────────────────────────────────────────
+        allowed_base_dirs = [
+            os.path.abspath(os.path.dirname(__file__)),  # Library directory
+            os.path.abspath(os.getcwd())                 # Current working directory
+        ]
+        destination_path_abs = os.path.abspath(destination_path)
+        is_allowed = any(destination_path_abs.startswith(base_dir + os.sep) or destination_path_abs == base_dir
+                        for base_dir in allowed_base_dirs)
+        if not is_allowed:
+            return self.update_error(f"Security Error: Path traversal detected. Destination must be within library or current directory.")
+
         if not os.path.isdir(destination_path):
             return self.update_error(f"- Error: invalid directory: {destination_path}")
 
@@ -1544,7 +1555,18 @@ class UpdateGeoIP2Fast(object):
             except Exception as ERR:
                 return self.update_error(str(ERR))
         dest_dir, dest_filename = os.path.split(os.path.abspath(os.path.join(dest_dir,dest_filename)))
-        
+
+        ##──── Path traversal protection: Ensure destination is within allowed directories ───────────────────────────────────────────────
+        allowed_base_dirs = [
+            os.path.abspath(os.path.dirname(__file__)),  # Library directory
+            os.path.abspath(os.getcwd())                 # Current working directory
+        ]
+        dest_dir_abs = os.path.abspath(dest_dir)
+        is_allowed = any(dest_dir_abs.startswith(base_dir + os.sep) or dest_dir_abs == base_dir
+                        for base_dir in allowed_base_dirs)
+        if not is_allowed:
+            return self.update_error(f"Security Error: Path traversal detected. Destination must be within library or current directory.")
+
         ##──── This check prevents your code from being overwritten by a downloaded file. ────────────────────────────────────────────────
         ##──── Filename extensions other than .dat.gz are not accepted ───────────────────────────────────────────────────────────────────
         if dest_filename.lower().endswith(".dat.gz") == False:
