@@ -1759,6 +1759,13 @@ def main_function():
         print(f"fgeoip2fast v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [-d|--dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
         if '-h' in sys.argv or '--help' in sys.argv:
             print(f"""
+Examples:
+  {os.path.basename(__file__)} 8.8.8.8
+  {os.path.basename(__file__)} -v -d 8.8.8.8,1.1.1.1
+  {os.path.basename(__file__)} --verbose --dns 8.8.8.8
+  {os.path.basename(__file__)} --info
+  {os.path.basename(__file__)} --update-all
+
 General parameters:
   -h, --help          Show this help message and exit.
   -v, --verbose       Enable verbose mode.
