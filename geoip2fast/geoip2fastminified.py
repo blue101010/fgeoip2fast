@@ -129,7 +129,11 @@ class GeoIP2FastMin:
 		except Exception as B:raise GeoIP2FastMin.GeoIPError(f"Failed to 'load' GeoIP2Fast! the data file {C} appears to be invalid or does not exist! {str(B)}")
 		A.database_path=A.os.path.realpath(A.data_file)
 		try:
-			__DAT_VERSION__,source_info,totalNetworks,E=A.pickle.load(D)
+			class S(A.pickle.Unpickler):
+				def find_class(s,m,n):
+					if m=="builtins"and n in['int','str','list','dict','set','tuple','bool','float','bytes','NoneType']:return getattr(A.sys.modules[m],n)
+					raise A.pickle.UnpicklingError()
+			__DAT_VERSION__,source_info,totalNetworks,E=S(D).load()
 			if __DAT_VERSION__!=120:raise GeoIP2FastMin.GeoIPError(f"Failed to pickle the data file {C}. Reason: Invalid version - requires 120, current {str(__DAT_VERSION__)}")
 			A.source_info=source_info['info'];A.country=source_info['country'];A.city=source_info['city'];A.asn=source_info['asn']
 			if A.country==True and A.asn==False:mainIndex,mainListNamesCountry,mainListFirstIP,mainListIDCountryCodes,mainListNetlength=E

@@ -58,6 +58,14 @@ import urllib.request, urllib.error, urllib.parse, gzip, pickle, json, bisect, t
 import geoip2fast as _ 
 GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(_.__file__),"geoip2fast.dat.gz")
 
+class SafeUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        # Only allow safe built-in types
+        if module == "builtins":
+            if name in ['int', 'str', 'list', 'dict', 'set', 'tuple', 'bool', 'float', 'bytes', 'NoneType']:
+                return getattr(sys.modules[module], name)
+        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden")
+
 ##──── Define here what do you want to return if one of these errors occurs ─────────────────────────────────────────────────────
 ##──── ECCODE = Error Country Code ───────────────────────────────────────────────────────────────────────────────────────────────
 GEOIP_ECCODE_PRIVATE_NETWORKS       = "--"
@@ -429,7 +437,8 @@ class GeoIP2Fast(object):
         #             _SOURCE_INFO]       # string 
         try:
             self.clear_cache()
-            __DAT_VERSION__, geoipLocationList, geoipASNList, geoipMainList, databaseHash, sliceInfo, geoipSourceInfo = pickle.load(inputFile)
+            # __DAT_VERSION__, geoipLocationList, geoipASNList, geoipMainList, databaseHash, sliceInfo, geoipSourceInfo = pickle.load(inputFile)
+            __DAT_VERSION__, geoipLocationList, geoipASNList, geoipMainList, databaseHash, sliceInfo, geoipSourceInfo = SafeUnpickler(inputFile).load()
             if __DAT_VERSION__ != 110:
                 raise GeoIPError(f"Failed to pickle the data file {gzip_data_file}. Reason: Invalid version - requires 110, current {str(__DAT_VERSION__)}")
             self.ipv6 = geoipMainList[0][-1] > numIPsv4[0]
@@ -1067,8 +1076,20 @@ class UpdateGeoIP2Fast(object):
                         destination_path = os.path.dirname(__file__)
                     if destination_filename == "" or destination_filename == "." or destination_filename.find(".") < 0:
                         destination_filename = file_name
+                    
+                    ##──── Path traversal protection ─────────────────────────────────────────────────────────────────────────────────
+                    final_path = os.path.abspath(os.path.join(destination_path, destination_filename))
+                    allowed_base_dirs = [
+                        os.path.abspath(os.path.dirname(__file__)),
+                        os.path.abspath(os.getcwd())
+                    ]
+                    is_allowed = any(final_path.startswith(base_dir + os.sep) or final_path == base_dir for base_dir in allowed_base_dirs)
+                    if not is_allowed:
+                         return self.update_error(f"Security Error: Path traversal detected. Destination must be within library or current directory.")
+                    ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
                     try:
-                        with open(os.path.join(destination_path,destination_filename), 'wb') as output_file:
+                        with open(final_path, 'wb') as output_file:
                             self._print_verbose(f"- Downloading {file_name}... 0%", end="", flush=True)
                             while True:
                                 chunk = response.read(chunk_size)
@@ -1236,6 +1257,17 @@ class UpdateGeoIP2Fast(object):
                 return self.update_error(str(ERR))
         dest_dir, dest_filename = os.path.split(os.path.abspath(os.path.join(dest_dir,dest_filename)))
         
+        ##──── Path traversal protection: Ensure destination is within allowed directories ───────────────────────────────────────────────
+        allowed_base_dirs = [
+            os.path.abspath(os.path.dirname(__file__)),  # Library directory
+            os.path.abspath(os.getcwd())                 # Current working directory
+        ]
+        dest_dir_abs = os.path.abspath(dest_dir)
+        is_allowed = any(dest_dir_abs.startswith(base_dir + os.sep) or dest_dir_abs == base_dir
+                        for base_dir in allowed_base_dirs)
+        if not is_allowed:
+            return self.update_error(f"Security Error: Path traversal detected. Destination must be within library or current directory.")
+
         ##──── This check prevents your code from being overwritten by a downloaded file. ────────────────────────────────────────────────
         ##──── Filename extensions other than .dat.gz are not accepted ───────────────────────────────────────────────────────────────────
         if dest_filename.lower().endswith(".dat.gz") == False:

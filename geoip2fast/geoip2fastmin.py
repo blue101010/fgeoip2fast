@@ -249,7 +249,14 @@ class GeoIP2FastMin(object):
         self._database_path = self.os.path.realpath(self.data_file)
         ##──── Load the dat.gz file into memory ──────────────────────────────────────────────────────────────────────────────────────────
         try:
-            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = self.pickle.load(inputFile)
+            class SafeUnpickler(self.pickle.Unpickler):
+                def find_class(subself, module, name):
+                    if module == "builtins":
+                        if name in ['int', 'str', 'list', 'dict', 'set', 'tuple', 'bool', 'float', 'bytes', 'NoneType']:
+                            return getattr(self.sys.modules[module], name)
+                    raise self.pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden")
+
+            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = SafeUnpickler(inputFile).load()
             if __DAT_VERSION__ != 120:
                 raise GeoIP2FastMin.GeoIPError(f"Failed to pickle the data file {gzip_data_file}. Reason: Invalid version - requires 120, current {str(__DAT_VERSION__)}")
             self.source_info = source_info['info']

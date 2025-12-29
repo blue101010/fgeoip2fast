@@ -40,16 +40,27 @@ if __name__ == "__main__":
     print(result.pp_json(indent=3,sort_keys=False))
 
     # info about internal cache
-    print(GEOIP.cache_info())
+    try:
+        print(GEOIP.cache_info())
+    except AttributeError:
+        print("Cache info not available (lru_cache disabled)")
 
     # clear the internal cache
     print(GEOIP.clear_cache())
 
     # info about internal cache
-    print(GEOIP.cache_info())
+    try:
+        print(GEOIP.cache_info())
+    except AttributeError:
+        print("Cache info not available (lru_cache disabled)")
 
     # to check the date of the CSV files used to create the .dat file
-    print(GEOIP.get_source_info())
+    if hasattr(GEOIP, 'get_source_info'):
+        print(GEOIP.get_source_info())
+    elif hasattr(GEOIP, 'get_database_info'):
+        print(GEOIP.get_database_info())
+    else:
+        print(GEOIP.source_info)
     
     print("")
 

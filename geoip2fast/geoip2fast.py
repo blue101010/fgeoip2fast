@@ -69,6 +69,14 @@ import geoip2fast as _
 
 GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(_.__file__),"geoip2fast.dat.gz")
 
+class SafeUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        # Only allow safe built-in types
+        if module == "builtins":
+            if name in ['int', 'str', 'list', 'dict', 'set', 'tuple', 'bool', 'float', 'bytes', 'NoneType']:
+                return getattr(sys.modules[module], name)
+        raise pickle.UnpicklingError(f"Global '{module}.{name}' is forbidden")
+
 ##──── Define here what do you want to return if one of these errors occurs ─────────────────────────────────────────────────────
 ##──── ECCODE = Error Country Code ───────────────────────────────────────────────────────────────────────────────────────────────
 GEOIP_ECCODE_PRIVATE_NETWORKS       = "--"
@@ -240,6 +248,8 @@ class CityDetail(object):
             self.name, self.subdivision_code, self.subdivision_name, self.subdivision2_code, self.subdivision2_name, self.latitude, self.longitude = city_string.split("|")
         except:
             self.name, self.subdivision_code, self.subdivision_name, self.subdivision2_code, self.subdivision2_name, self.latitude, self.longitude = GEOIP_INTERNAL_ERROR_STRING,"","","","",0.0,0.0
+    def __str__(self):
+        return self.name if self.name else ""
     def to_dict(self):
         return {
             "name": self.name,
@@ -509,7 +519,8 @@ class GeoIP2Fast(object):
         ##──── Load the dat.gz file into memory ──────────────────────────────────────────────────────────────────────────────────────────
         try:
             self.clear_cache()
-            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = pickle.load(inputFile)
+            # __DAT_VERSION__, source_info, totalNetworks, mainDatabase = pickle.load(inputFile)
+            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = SafeUnpickler(inputFile).load()
           
             if __DAT_VERSION__ != 120 and __DAT_VERSION__ != 121:
                 raise GeoIPError(f"Failed to pickle the data file {gzip_data_file}. Reason: Invalid version - requires 120/121, current {str(__DAT_VERSION__)}")
@@ -905,7 +916,10 @@ class GeoIP2Fast(object):
         
         Exemple output: CacheInfo(hits=18, misses=29, maxsize=10000, currsize=29)
         """
-        try:    
+        try:
+            if not hasattr(self._main_index_lookup, 'cache_info'):
+                return ("Caching disabled (lru_cache not active)",)*5
+                
             return ("main_index_lookup "+str(self._main_index_lookup.cache_info()),\
                 "asn_lookup "+str(self._asn_lookup.cache_info()),\
                 "country_lookup "+str(self._country_lookup.cache_info()),\
@@ -1376,8 +1390,20 @@ class UpdateGeoIP2Fast(object):
                         destination_path = os.path.dirname(__file__)
                     if destination_filename == "" or destination_filename == "." or destination_filename.find(".") < 0:
                         destination_filename = file_name
+                    
+                    
+                    final_path = os.path.abspath(os.path.join(destination_path, destination_filename))
+                    allowed_base_dirs = [
+                        os.path.abspath(os.path.dirname(__file__)),
+                        os.path.abspath(os.getcwd())
+                    ]
+                    is_allowed = any(final_path.startswith(base_dir + os.sep) or final_path == base_dir for base_dir in allowed_base_dirs)
+                    if not is_allowed:
+                         return self.update_error(f"Security Error: Path traversal detected. Destination must be within library or current directory.")
+                    
+
                     try:
-                        with open(os.path.join(destination_path,destination_filename), 'wb') as output_file:
+                        with open(final_path, 'wb') as output_file:
                             self._print_verbose(f"- Downloading {file_name}... 0%", end="", flush=True)
                             while True:
                                 chunk = response.read(chunk_size)
