@@ -1,4 +1,3 @@
-import codecs
 from setuptools import setup, find_packages
 
 setup(
@@ -16,8 +15,8 @@ setup(
         "Latest DAT files": "https://github.com/rabuchaim/geoip2fast/releases/latest",
         "Legacy v1.1.X DAT files": "https://github.com/rabuchaim/geoip2fast/releases/tag/LEGACY",
     },    
-    bugtrack_url='https://github.com/rabuchaim/geoip2fast/issues',    
     license='MIT',
+    license_expression='MIT',
     keywords=['geoip','geoip2','geolite2','maxmind','geoip2fast','geolocation','geolocalization','geo ip','ipaddress','ip','geo','ipv4','ipv6','pure-python','purepython','pure python','geoiptofast','geoiptoofast','geoip2dat','mmdb','tools'],
     packages=['geoip2fast'],
     py_modules=['geoip2fast', 'geoip2dat'],
@@ -81,8 +80,7 @@ setup(
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: Implementation :: PyPy',
-        'License :: OSI Approved :: MIT License',
     ],
-    long_description=codecs.open("README.md","r","utf-8").read(),
+    long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type='text/markdown',
 )
