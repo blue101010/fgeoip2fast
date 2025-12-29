@@ -1,4 +1,6 @@
-# GeoIP2Fast v1.2.2
+# fgeoip2fast v1.2.2a based on GeoIP2Fast v1.2.2
+
+fgeoip2fast is a fork with few tweaks based on GeoIP2Fast.
 
 GeoIP2Fast is the fastest GeoIP2 country/city/asn lookup library. A search takes less than 0.00003 seconds. It has its own data file updated with Maxmind-Geolite2-CSV, supports IPv4 and IPv6, works on Python3, Pypy3 and is Pure Python!
 
