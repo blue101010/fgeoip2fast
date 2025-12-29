@@ -2,7 +2,7 @@
 # encoding: utf-8
 # -*- coding: utf-8 -*-
 """
-GeoIP2Fast - Version v1.2.2
+fgeoip2fast - Version v1.2.2 based on GeoIP2Fast
 
 Author: Ricardo Abuchaim - ricardoabuchaim@gmail.com
         https://github.com/rabuchaim/geoip2fast/
@@ -573,7 +573,7 @@ class GeoIP2Fast(object):
         try:
             totalLoadTime = (time.perf_counter() - startLoadData)
             totalMemUsage = abs((get_mem_usage() - startMem))
-            self._load_data_text = f"GeoIP2Fast v{__version__} is ready! {os.path.basename(gzip_data_file)} "+ \
+            self._load_data_text = f"fgeoip2fast v{__version__} based on GeoIP2Fast is ready! {os.path.basename(gzip_data_file)} "+ \
                 "loaded with %s networks in %.5f seconds and using %.2f MiB."%(format_num(totalNetworks),totalLoadTime,totalMemUsage)
             self._print_verbose(self._load_data_text)
         except Exception as ERR:
@@ -1754,7 +1754,7 @@ def main_function():
                 result.pp_json(print_result=True)
         sys.exit(0)
     else:
-        print(f"GeoIP2Fast v{__version__} Usage: {os.path.basename(__file__)} [-h] [-v] [-d] [-i] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
+        print(f"fgeoip2fast v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h] [-v] [-d] [-i] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
         if '-h' in sys.argv or '--help' in sys.argv:
             print(f"""
 Tests parameters:
