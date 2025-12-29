@@ -15,6 +15,13 @@ Author: Ricardo Abuchaim - ricardoabuchaim@gmail.com
 License: MIT
 
 ############################################################################
+
+What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025
+- CLI Enhancements: Improved command-line interface with support for long arguments (e.g., `--verbose`, `--dns`, `--help`), added an examples section to help output, and updated usage instructions.
+- Installation Improvements: Added `kali-install.py` for compliant installation on Kali Linux/Debian (handling PEP 668), and modernized `setup.py` by removing deprecated code and fixing license classifiers.
+- Security & Testing: Implemented safe unpickling and path traversal protection in update methods, and added `testfgeoip.py` for functional testing.
+
+
 What's new in v1.2.2 - 20/Jun/2024
 - DAT files updated with MAXMIND:GeoLite2-CSV_20240618
 - Removed the line "sys.tracebacklimit = 0" that was causing some problems 

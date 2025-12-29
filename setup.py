@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='fgeoip2fast',
     version='1.2.2a',
-    description='GeoIP2Fast is the fastest GeoIP2 country/city/asn lookup library that supports IPv4 and IPv6. A search takes less than 0.00003 seconds. It has its own data file updated twice a week with Maxmind-Geolite2-CSV, supports IPv4/IPv6 and is Pure Python!',
+    description='fgeoip2fast is the fastest GeoIP2 country/city/asn lookup library that supports IPv4 and IPv6. A search takes less than 0.00003 seconds. It has its own data file updated twice a week with Maxmind-Geolite2-CSV, supports IPv4/IPv6 and is Pure Python!',
     url='https://github.com/rabuchaim/geoip2fast',
     author='Ricardo Abuchaim',
     author_email='ricardoabuchaim@gmail.com',
@@ -17,7 +17,7 @@ setup(
     },    
     license='MIT',
     license_expression='MIT',
-    keywords=['geoip','geoip2','geolite2','maxmind','geoip2fast','geolocation','geolocalization','geo ip','ipaddress','ip','geo','ipv4','ipv6','pure-python','purepython','pure python','geoiptofast','geoiptoofast','geoip2dat','mmdb','tools'],
+    keywords=['fgeoip2fast','geoip','geoip2','geolite2','maxmind','geoip2fast','geolocation','geolocalization','geo ip','ipaddress','ip','geo','ipv4','ipv6','pure-python','purepython','pure python','geoiptofast','geoiptoofast','geoip2dat','mmdb','tools'],
     packages=['geoip2fast'],
     py_modules=['geoip2fast', 'geoip2dat'],
     package_dir = {'geoip2fast': 'geoip2fast'},

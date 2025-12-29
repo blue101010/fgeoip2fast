@@ -37,10 +37,10 @@ What's new in v1.2.2 - 20/Jun/2024
 - New function get_database_info() that returns a dictionary with 
   detailed information about the data file currently in use.
 - Made some adjustments to the --missing-ips and --coverage functions.  
-- Now you can specify the data filename to be used on geoip2fast cli:
-    geoip2fast geoip2fast-ipv6.dat.gz --self-test
-    geoip2fast 9.9.9.9,1.1.1.1,2a10:8b40:: geoip2fast-asn-ipv6.dat.gz
-- New functions to generate random IP addresses to be used in tests. 
+- Now you can specify the data filename to be used on fgeoip2fast cli:
+    fgeoip2fast geoip2fast-ipv6.dat.gz --self-test
+    fgeoip2fast 9.9.9.9,1.1.1.1,2a10:8b40:: geoip2fast-asn-ipv6.dat.gz
+- New functions to generate random IP addresses to be used in tests.  
   Returns a list if more than 1 IP is requested, otherwise returns a 
   string with only 1 IP address. If you request an IPv6 and the database
   loaded does not have IPv6 data, returns False. And the fuction of
@@ -51,16 +51,16 @@ What's new in v1.2.2 - 20/Jun/2024
     def generate_random_ipv6_address(self,num_ips=1)->string or a list
 - Removed functools.lru_cache. It is very useful when you have a function 
   that is repeated several times but takes a long time, which is not the 
-  case of GeoIP2Fast where functions take milliseconds. On each call, 
+  case of fgeoip2fast where functions take milliseconds. On each call, 
   functools checks whether the value is already cached or not, and this 
   takes time. And we noticed that without functools and using the processor 
-  and operating system's own cache makes GeoIP2Fast much faster without it
+  and operating system's own cache makes fgeoip2fast much faster without it
   even if you are searching for an IP for the first time.
   If you want to use lru_cache, you can uncomment the respective lines 
   of code. There are 5 lines commented with @functools.lru_cache 
 - Put some flowers
 """
-__appid__   = "GeoIP2Fast"
+__appid__   = "fgeoip2fast"
 __version__ = "1.2.2"
 
 import sys, os, ctypes, struct, socket, time, subprocess, random, binascii, functools
@@ -573,7 +573,7 @@ class GeoIP2Fast(object):
         try:
             totalLoadTime = (time.perf_counter() - startLoadData)
             totalMemUsage = abs((get_mem_usage() - startMem))
-            self._load_data_text = f"fgeoip2fast v{__version__} based on GeoIP2Fast is ready! {os.path.basename(gzip_data_file)} "+ \
+            self._load_data_text = f"{__appid__} v{__version__} based on GeoIP2Fast is ready! {os.path.basename(gzip_data_file)} "+ \
                 "loaded with %s networks in %.5f seconds and using %.2f MiB."%(format_num(totalNetworks),totalLoadTime,totalMemUsage)
             self._print_verbose(self._load_data_text)
         except Exception as ERR:
@@ -912,7 +912,7 @@ class GeoIP2Fast(object):
         """ 
         Returns information about the internal cache of lookup function
         
-        Usage: print(GeoIP2Fast.cache_info())
+        Usage: print({__appid__}.cache_info())
         
         Exemple output: CacheInfo(hits=18, misses=29, maxsize=10000, currsize=29)
         """
@@ -961,7 +961,7 @@ class GeoIP2Fast(object):
         return return_list[0] if len(return_list) == 1 else return_list
                 
     def generate_random_ipv6_address(self,num_ips=1):
-        """Generate an IPv6 address from some network that exists in GeoIP2Fast data file.
+        """Generate an IPv6 address from some network that exists in {__appid__} data file.
         
            If only 1 IP is requested, returns a string, otherwise returns a list.
            
@@ -1140,7 +1140,7 @@ class GeoIP2Fast(object):
         Method: Get a list of all CIDR from geoip2fast.dat.gz using the function self._get_cidr_list(). For each CIDR, 
                 calculates the number of hosts using the function self._get_num_hosts(CIDR) and sum all of returned values.
                 Finally, the proportion is calculated in relation to the maximum possible number of IPv4 (4294967294).
-                GeoIP2Fast will return a response for XX.XX% of all IPv4 on the internet.
+                {__appid__} will return a response for XX.XX% of all IPv4 on the internet.
         
         Returns:
             float: Returns a percentage compared with all possible IPsv4
@@ -1192,7 +1192,7 @@ class GeoIP2Fast(object):
     def calculate_speed(self,print_result=False,max_ips=1000000)->float:
         """Calculate how many lookups per second is possible.
 
-        Method: generates a list of 1.000.000 of randomic IP addresses and do a GeoIP2Fast.lookup() on all IPs on this list. 
+        Method: generates a list of 1.000.000 of randomic IP addresses and do a {__appid__}.lookup() on all IPs on this list. 
                 It tooks a few seconds, less than a minute.
 
         Note: This function clear all cache before start the tests. And inside the loop generates a random IP address in runtime 
@@ -1705,7 +1705,7 @@ def main_function():
     ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
     if '--speed-test' in sys.argv or '--speedtest' in sys.argv:
         geoip = GeoIP2Fast(geoip2fast_data_file=geoip2fast_datafile,verbose=True)
-        print("\nCalculating current speed... wait a few seconds please...\n")
+        print(f"\nCalculating current speed... wait a few seconds please...\n")
         geoip.calculate_speed(True)
         print("")
         sys.exit(0)
@@ -1756,15 +1756,15 @@ def main_function():
                 result.pp_json(print_result=True)
         sys.exit(0)
     else:
-        print(f"fgeoip2fast v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [-d|--dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
+        print(f"{__appid__} v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [-d|--dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
         if '-h' in sys.argv or '--help' in sys.argv:
             print(f"""
 Examples:
-  {os.path.basename(__file__)} 8.8.8.8
-  {os.path.basename(__file__)} -v -d 8.8.8.8,1.1.1.1
-  {os.path.basename(__file__)} --verbose --dns 8.8.8.8
-  {os.path.basename(__file__)} --info
-  {os.path.basename(__file__)} --update-all
+  {__appid__} 8.8.8.8
+  {__appid__} -v -d 8.8.8.8,1.1.1.1
+  {__appid__} --verbose --dns 8.8.8.8
+  {__appid__} --info
+  {__appid__} --update-all
 
 General parameters:
   -h, --help          Show this help message and exit.
@@ -1796,10 +1796,7 @@ Automatic update:
 
   --update-file <geoip2fast_dat_filename> [-v]
                        Download a specific filename from the repository. Only one file is allowed.
-                       Allowed values: geoip2fast.dat.gz OR geoip2fast-ipv6.dat.gz OR 
-                                       geoip2fast-asn.dat.gz OR geoip2fast-asn-ipv6.dat.gz OR
-                                       geoip2fast-city.dat.gz OR geoip2fast-city-ipv6.dat.gz OR 
-                                       geoip2fast-city-asn.dat.gz OR geoip2fast-city-asn-ipv6.dat.gz
+                       Allowed values: {str(GEOIP_POSSIBLE_FILENAMES)[1:-1].replace(", ",",")}
 
   --dest <a directory path or a filename> [-v]
                        Specify the destination directory for the downloaded files. When combined with 
