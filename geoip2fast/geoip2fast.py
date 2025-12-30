@@ -67,7 +67,7 @@ import sys, os, ctypes, struct, socket, time, subprocess, random, binascii, func
 import urllib.request, urllib.error, urllib.parse, gzip, pickle, json, random, bisect, re, ipaddress
 import geoip2fast as _ 
 
-GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(_.__file__),"geoip2fast.dat.gz")
+GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(_.__file__),"geoip2fast-asn.dat.gz")
 
 class SafeUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
@@ -326,6 +326,12 @@ class GeoIPDetail(object):
             ##──── otherwise keep the key so that it is in the position just below 'country_name' ────────────────────────────────────────────
             if not hasattr(self, 'city'):
                 del d['city']
+            
+            if not self.asn_name:
+                del d['asn_name']
+            if not self.asn_cidr:
+                del d['asn_cidr']
+
             ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
             try:
                 a = self.elapsed_time_hostname
@@ -1705,6 +1711,12 @@ def main_function():
         sys.argv.pop(sys.argv.index('--no-dns'))
         ncmd = len(sys.argv)
 
+    enable_asn = True
+    if '--no-asn' in sys.argv:
+        enable_asn = False
+        sys.argv.pop(sys.argv.index('--no-asn'))
+        ncmd = len(sys.argv)
+
     if '-d' in sys.argv or '--dns' in sys.argv: 
         resolve_hostname = True
         if '-d' in sys.argv: sys.argv.pop(sys.argv.index('-d'))
@@ -1838,13 +1850,15 @@ def main_function():
         a_list = sys.argv[1].replace(" ","").split(",")
         if len(a_list) > 0:
             geoip = GeoIP2Fast(geoip2fast_data_file=geoip2fast_datafile,verbose=verbose_mode)
+            if not enable_asn:
+                geoip.asn = False
             for IP in a_list:
                 result = geoip.lookup(str(IP))
                 if resolve_hostname == True: result.get_hostname()
                 result.pp_json(print_result=True)
         sys.exit(0)
     else:
-        print(f"{__appid__} v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [--no-dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
+        print(f"{__appid__} v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [--no-dns] [--no-asn] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
         if '-h' in sys.argv or '--help' in sys.argv:
             print(f"""
 Examples:
@@ -1860,6 +1874,7 @@ General parameters:
   --no-verbose        Disable verbose mode (useful when it is enabled by default).
   -d, --dns           Enable DNS resolution (hostname lookup) [Default].
   --no-dns            Disable DNS resolution.
+  --no-asn            Disable ASN lookup and display.
   -i, --info          Show database information.
 
 Tests parameters:
