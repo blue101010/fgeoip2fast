@@ -288,8 +288,8 @@ class GeoIPDetail(object):
         Returns:
             str: the hostname if success or an error message between < >
         """
+        startTime = time.perf_counter()
         try:
-            startTime = time.perf_counter()
             socket.setdefaulttimeout(dns_timeout)
             result = socket.gethostbyaddr(self.ip)[0]
             self.hostname = result if result != self.ip else ""
@@ -297,9 +297,11 @@ class GeoIPDetail(object):
             return self.hostname
         except OSError as ERR:
             self.hostname = f"<{str(ERR.strerror)}>"
+            self.elapsed_time_hostname = "%.9f sec"%(time.perf_counter()-startTime)
             return self.hostname
         except Exception as ERR:
             self.hostname = "<dns resolver error>"
+            self.elapsed_time_hostname = "%.9f sec"%(time.perf_counter()-startTime)
             return self.hostname        
     def to_dict(self):
         """To use the result as a dict
@@ -329,6 +331,8 @@ class GeoIPDetail(object):
                 a = self.elapsed_time_hostname
                 d['elapsed_time_hostname'] = self.elapsed_time_hostname
             except:
+                if 'hostname' in d:
+                    del d['hostname']
                 pass
             return d
         except Exception as ERR:
@@ -1680,7 +1684,7 @@ class UpdateGeoIP2Fast(object):
 def main_function():
     ncmd = len(sys.argv)
     verbose_mode = False
-    resolve_hostname = False
+    resolve_hostname = True
     with_ipv6 = False
     geoip2fast_datafile = ""    
     if '--no-verbose' in sys.argv:
@@ -1695,6 +1699,12 @@ def main_function():
         if '-v' in sys.argv: sys.argv.pop(sys.argv.index('-v'))
         if '--verbose' in sys.argv: sys.argv.pop(sys.argv.index('--verbose'))
         ncmd = len(sys.argv)
+    
+    if '--no-dns' in sys.argv:
+        resolve_hostname = False
+        sys.argv.pop(sys.argv.index('--no-dns'))
+        ncmd = len(sys.argv)
+
     if '-d' in sys.argv or '--dns' in sys.argv: 
         resolve_hostname = True
         if '-d' in sys.argv: sys.argv.pop(sys.argv.index('-d'))
@@ -1834,7 +1844,7 @@ def main_function():
                 result.pp_json(print_result=True)
         sys.exit(0)
     else:
-        print(f"{__appid__} v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [-d|--dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
+        print(f"{__appid__} v{__version__} based on GeoIP2Fast Usage: {os.path.basename(__file__)} [-h|--help] [-v|--verbose] [--no-dns] [-i|--info] [data_filename_to_be_used] <ip_address_1>,<ip_address_2>,<ip_address_N>,...")
         if '-h' in sys.argv or '--help' in sys.argv:
             print(f"""
 Examples:
@@ -1848,7 +1858,8 @@ General parameters:
   -h, --help          Show this help message and exit.
   -v, --verbose       Enable verbose mode.
   --no-verbose        Disable verbose mode (useful when it is enabled by default).
-  -d, --dns           Enable DNS resolution (hostname lookup).
+  -d, --dns           Enable DNS resolution (hostname lookup) [Default].
+  --no-dns            Disable DNS resolution.
   -i, --info          Show database information.
 
 Tests parameters:
