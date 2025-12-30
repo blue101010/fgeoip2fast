@@ -1462,12 +1462,20 @@ class UpdateGeoIP2Fast(object):
                             dat_created_at = source_info.get('created_at', None)
                             
                             if not dat_created_at:
-                                # Try to extract date from info string (e.g. MAXMIND:GeoLite2-Country-CSV_20231027)
-                                match = re.search(r'_(\d{4})(\d{2})(\d{2})', dat_creation_info)
-                                if match:
-                                    dat_created_at = f"{match.group(1)}-{match.group(2)}-{match.group(3)} (Estimated)"
-                                else:
-                                    dat_created_at = "Unknown date"
+                                # Try to extract date from GZIP header (system level)
+                                try:
+                                    if f.mtime:
+                                        import datetime
+                                        dat_created_at = datetime.datetime.fromtimestamp(f.mtime).strftime('%Y-%m-%d %H:%M:%S')
+                                    else:
+                                        # Fallback to regex if GZIP mtime is missing
+                                        match = re.search(r'_(\d{4})(\d{2})(\d{2})', dat_creation_info)
+                                        if match:
+                                            dat_created_at = f"{match.group(1)}-{match.group(2)}-{match.group(3)} (Estimated)"
+                                        else:
+                                            dat_created_at = "Unknown date"
+                                except Exception:
+                                     dat_created_at = "Unknown date"
 
                             self._print_verbose(f"  [INFO] Source: {dat_creation_info}")
                             self._print_verbose(f"  [OK] geoip2fast.dat file created: {dat_created_at}")
