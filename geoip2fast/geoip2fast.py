@@ -243,7 +243,7 @@ class CityDetail(object):
             self.name, self.subdivision_code, self.subdivision_name, self.subdivision2_code, self.subdivision2_name = GEOIP_INTERNAL_ERROR_STRING,"","","",""
         self.latitude = None
         self.longitude = None
-    def __init__121(self, city_string="||||||"):
+    def _init_121(self, city_string="||||||"):
         try:
             self.name, self.subdivision_code, self.subdivision_name, self.subdivision2_code, self.subdivision2_name, self.latitude, self.longitude = city_string.split("|")
         except:
@@ -552,7 +552,7 @@ class GeoIP2Fast(object):
                 if __DAT_VERSION__ == 120:
                     mainIndex,mainListNamesCountry,mainListNamesCity,mainListFirstIP,mainListIDCity,mainListNetlength = mainDatabase
                 elif __DAT_VERSION__ == 121:
-                    CityDetail.__init__.__code__ = CityDetail.__init__121.__code__
+                    CityDetail.__init__.__code__ = CityDetail._init_121.__code__
                     mainIndex,mainListNamesCountry,mainListNamesCity,mainListFirstIP,mainListIDCity,mainListNetlength = mainDatabase
             ##──── CITY WITH ASN ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
             elif self.city == True and self.asn == True:
@@ -560,7 +560,7 @@ class GeoIP2Fast(object):
                     mainIndex,mainIndexASN,mainListNamesCountry,mainListNamesCity,mainListNamesASN,\
                     mainListFirstIP,mainListFirstIPASN,mainListIDCity,mainListIDASN,mainListNetlength,mainListNetlengthASN = mainDatabase
                 elif __DAT_VERSION__ == 121:
-                    CityDetail.__init__.__code__ = CityDetail.__init__121.__code__
+                    CityDetail.__init__.__code__ = CityDetail._init_121.__code__
                     mainIndex,mainIndexASN,mainListNamesCountry,mainListNamesCity,mainListNamesASN,\
                     mainListFirstIP,mainListFirstIPASN,mainListIDCity,mainListIDASN,mainListNetlength,mainListNetlengthASN = mainDatabase
 
