@@ -106,29 +106,102 @@ download_files() {
 convert_files() {
     print_header "Convert CSV to .dat.gz"
     
-    if [ -z "$CITY_DIR" ]; then
-        read -e -p "Enter path to extracted GeoLite2-City-CSV directory: " CITY_DIR
-    fi
-    if [ -z "$ASN_DIR" ]; then
-        read -e -p "Enter path to extracted GeoLite2-ASN-CSV directory: " ASN_DIR
-    fi
+    # Ask for the base directory where the user extracted the files
+    read -e -p "Enter directory containing extracted folders (default: ./maxmind_downloads): " BASE_DIR
+    BASE_DIR="${BASE_DIR:-./maxmind_downloads}"
     
-    # Remove quotes if user added them (common in some terminals)
+    # Remove quotes if user added them
+    BASE_DIR="${BASE_DIR%\"}"
+    BASE_DIR="${BASE_DIR#\"}"
+
+    if [ ! -d "$BASE_DIR" ]; then
+        echo "Error: Directory does not exist: $BASE_DIR"
+        return 1
+    fi
+
+    # --- Select City Directory ---
+    echo "--------------------------------------------------------------------------------"
+    echo "Searching for GeoLite2-City-CSV directories in: $BASE_DIR"
+    
+    # Find directories safely handling spaces
+    IFS=$'\n' CITY_OPTIONS=($(find "$BASE_DIR" -maxdepth 2 -type d -name "GeoLite2-City-CSV_*"))
+    unset IFS
+
+    if [ ${#CITY_OPTIONS[@]} -eq 0 ]; then
+        echo "No City directories found automatically."
+        read -e -p "Enter full path to GeoLite2-City-CSV directory: " CITY_DIR
+    elif [ ${#CITY_OPTIONS[@]} -eq 1 ]; then
+        CITY_DIR="${CITY_OPTIONS[0]}"
+        echo "Found: $CITY_DIR"
+        read -p "Use this directory? [Y/n] " CONFIRM
+        CONFIRM=${CONFIRM:-Y}
+        if [[ "$CONFIRM" =~ ^[Nn] ]]; then
+             read -e -p "Enter full path to GeoLite2-City-CSV directory: " CITY_DIR
+        fi
+    else
+        echo "Multiple directories found:"
+        for i in "${!CITY_OPTIONS[@]}"; do
+            echo "$((i+1))) ${CITY_OPTIONS[$i]}"
+        done
+        read -p "Select directory [1-${#CITY_OPTIONS[@]}]: " SELECTION
+        if [[ "$SELECTION" =~ ^[0-9]+$ ]] && [ "$SELECTION" -ge 1 ] && [ "$SELECTION" -le "${#CITY_OPTIONS[@]}" ]; then
+            CITY_DIR="${CITY_OPTIONS[$((SELECTION-1))]}"
+        else
+            echo "Invalid selection."
+            return 1
+        fi
+    fi
+
+    # --- Select ASN Directory ---
+    echo "--------------------------------------------------------------------------------"
+    echo "Searching for GeoLite2-ASN-CSV directories in: $BASE_DIR"
+    
+    IFS=$'\n' ASN_OPTIONS=($(find "$BASE_DIR" -maxdepth 2 -type d -name "GeoLite2-ASN-CSV_*"))
+    unset IFS
+
+    if [ ${#ASN_OPTIONS[@]} -eq 0 ]; then
+        echo "No ASN directories found automatically."
+        read -e -p "Enter full path to GeoLite2-ASN-CSV directory: " ASN_DIR
+    elif [ ${#ASN_OPTIONS[@]} -eq 1 ]; then
+        ASN_DIR="${ASN_OPTIONS[0]}"
+        echo "Found: $ASN_DIR"
+        read -p "Use this directory? [Y/n] " CONFIRM
+        CONFIRM=${CONFIRM:-Y}
+        if [[ "$CONFIRM" =~ ^[Nn] ]]; then
+             read -e -p "Enter full path to GeoLite2-ASN-CSV directory: " ASN_DIR
+        fi
+    else
+        echo "Multiple directories found:"
+        for i in "${!ASN_OPTIONS[@]}"; do
+            echo "$((i+1))) ${ASN_OPTIONS[$i]}"
+        done
+        read -p "Select directory [1-${#ASN_OPTIONS[@]}]: " SELECTION
+        if [[ "$SELECTION" =~ ^[0-9]+$ ]] && [ "$SELECTION" -ge 1 ] && [ "$SELECTION" -le "${#ASN_OPTIONS[@]}" ]; then
+            ASN_DIR="${ASN_OPTIONS[$((SELECTION-1))]}"
+        else
+            echo "Invalid selection."
+            return 1
+        fi
+    fi
+
+    # Final Validation
+    # Remove quotes if user added them manually in the fallback prompts
     CITY_DIR="${CITY_DIR%\"}"
     CITY_DIR="${CITY_DIR#\"}"
     ASN_DIR="${ASN_DIR%\"}"
     ASN_DIR="${ASN_DIR#\"}"
 
-    if [ ! -d "$CITY_DIR" ]; then
-        echo "Error: City directory does not exist: $CITY_DIR"
-        return 1
-    fi
-    if [ ! -d "$ASN_DIR" ]; then
-        echo "Error: ASN directory does not exist: $ASN_DIR"
+    if [ ! -d "$CITY_DIR" ] || [ ! -d "$ASN_DIR" ]; then
+        echo "Error: Invalid directories selected."
         return 1
     fi
 
+    echo "--------------------------------------------------------------------------------"
+    echo "Selected City Dir: $CITY_DIR"
+    echo "Selected ASN Dir:  $ASN_DIR"
+    echo "--------------------------------------------------------------------------------"
     echo "Running conversion..."
+    
     # Run the python module
     python -m geoip2fast.geoip2dat --city-dir "$CITY_DIR" --asn-dir "$ASN_DIR" --with-ipv6 --output-dir .
 }
