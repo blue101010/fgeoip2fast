@@ -16,6 +16,7 @@ License: MIT
 
 ############################################################################
 
+Author: blue101010
 What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025 (update by blue101010 )
 - enhance file validation and error handling during downloads to improve reliability
 - update documentation to reflect changes in package name and installation instructions
