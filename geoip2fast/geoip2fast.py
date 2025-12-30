@@ -1459,7 +1459,16 @@ class UpdateGeoIP2Fast(object):
                             
                             # Extract and display creation date/source info
                             dat_creation_info = source_info.get('info', 'Unknown source')
-                            dat_created_at = source_info.get('created_at', 'Unknown date')
+                            dat_created_at = source_info.get('created_at', None)
+                            
+                            if not dat_created_at:
+                                # Try to extract date from info string (e.g. MAXMIND:GeoLite2-Country-CSV_20231027)
+                                match = re.search(r'_(\d{4})(\d{2})(\d{2})', dat_creation_info)
+                                if match:
+                                    dat_created_at = f"{match.group(1)}-{match.group(2)}-{match.group(3)} (Estimated)"
+                                else:
+                                    dat_created_at = "Unknown date"
+
                             self._print_verbose(f"  [INFO] Source: {dat_creation_info}")
                             self._print_verbose(f"  [OK] geoip2fast.dat file created: {dat_created_at}")
                             
