@@ -1177,6 +1177,7 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                 'city':bool(city_dir != ""),
                 'asn':bool(asn_dir != ""),
                 'ipv6':with_ipv6,
+                'created_at': dt.now().strftime("%Y-%m-%d %H:%M:%S")
             }
             
             ##──── COUNTRY ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
