@@ -1424,12 +1424,45 @@ class UpdateGeoIP2Fast(object):
                     self._print_verbose(f"- File saved to: {os.path.join(destination_path,destination_filename)}")
                     self._print_verbose(f"- SHA256: {sha256_hash.hexdigest()}")
                     
+                    self._print_verbose(f"- Validating file content...")
                     try:
+                        # Case 1: Magic Number Check (GZIP)
+                        with open(final_path, 'rb') as f_raw:
+                            magic_bytes = f_raw.read(2)
+                        if magic_bytes != b'\x1f\x8b':
+                            found_hex = magic_bytes.hex().upper() if magic_bytes else "EMPTY"
+                            raise ValueError(f"Invalid GZIP magic number. Expected 1F8B, found {found_hex}. File is not a GZIP archive.")
+
                         with gzip.open(final_path, 'rb') as f:
-                            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = SafeUnpickler(f).load()
-                            self._print_verbose(f"- Content Analysis: {format_num(totalNetworks)} IP ranges found.")
+                            # Case 2: Pickle Integrity & Safe Unpickling
+                            try:
+                                pickle_content = SafeUnpickler(f).load()
+                            except (pickle.UnpicklingError, AttributeError, EOFError, ImportError, IndexError) as e:
+                                raise ValueError(f"Not a valid Python pickle stream. Malformed data or unauthorized type detected. {str(e)}")
+
+                            # Case 3: Data Structure Verification
+                            if not isinstance(pickle_content, (list, tuple)) or len(pickle_content) != 4:
+                                raise ValueError(f"Invalid data structure. Expected tuple of 4 elements, got {type(pickle_content).__name__}.")
+
+                            __DAT_VERSION__, source_info, totalNetworks, mainDatabase = pickle_content
+                            
+                            # Case 4: Logical & Version Validation
+                            if __DAT_VERSION__ not in [120, 121]:
+                                raise ValueError(f"Unsupported DAT version: {__DAT_VERSION__}. Expected 120 or 121.")
+                            
+                            if totalNetworks <= 0:
+                                raise ValueError(f"Invalid content. No IP networks found ({totalNetworks}).")
+
+                            self._print_verbose(f"  [OK] File is a valid GZIP compressed Python pickle stream.")
+                            self._print_verbose(f"  [OK] Structure verified: Version {__DAT_VERSION__}")
+                            self._print_verbose(f"  [OK] Content: {format_num(totalNetworks)} IP ranges found.")
+                            
+                    except (gzip.BadGzipFile, ValueError) as e:
+                         self._print_verbose(f"  [FAIL] Validation failed: {str(e)}")
+                         return self.update_error(f"File validation failed: {str(e)}")
                     except Exception as e:
-                        self._print_verbose(f"- Content Analysis Failed: {str(e)}")
+                        self._print_verbose(f"  [FAIL] Validation failed (Unexpected): {str(e)}")
+                        return self.update_error(f"File validation failed: {str(e)}")
 
                     return {'error':None,
                             'url':url,

@@ -16,7 +16,10 @@ License: MIT
 
 ############################################################################
 
-What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025
+What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025 (update by blue101010 )
+- enhance file validation and error handling during downloads to improve reliability
+- update documentation to reflect changes in package name and installation instructions
+- Changed package name to fgeoip2fast to avoid conflicts with geoip2fast.
 - Enhance error handling and add SHA256 checksum verification during file downloads to ensure data integrity.
 - Update documentation to reflect recent changes and improvements in the library.
 - CLI Enhancements: Improved command-line interface with support for long arguments (e.g., `--verbose`, `--dns`, `--help`), added an examples section to help output, and updated usage instructions.
