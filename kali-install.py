@@ -43,7 +43,7 @@ def install():
         print("\n[+] Installation successful!")
         
         if not is_root:
-            print("\n[i] Note: If the 'geoip2fast' command is not found, ensure your local bin is in PATH:")
+            print("\n[i] Note: If the 'fgeoip2fast' command is not found, ensure your local bin is in PATH:")
             print("    export PATH=$PATH:~/.local/bin")
             
     except subprocess.CalledProcessError as e:
