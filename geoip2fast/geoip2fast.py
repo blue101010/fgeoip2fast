@@ -1458,12 +1458,10 @@ class UpdateGeoIP2Fast(object):
                             self._print_verbose(f"  [OK] Content: {format_num(totalNetworks)} IP ranges found.")
                             
                             # Extract and display creation date/source info
-                            dat_creation_info = source_info.get('info', 'Unknown')
-                            self._print_verbose(f"  [OK] DAT Creation Info: {dat_creation_info}")
-                            
-                            dat_created_at = source_info.get('created_at', None)
-                            if dat_created_at:
-                                self._print_verbose(f"  [OK] geoip2fast.dat file created: {dat_created_at}")
+                            dat_creation_info = source_info.get('info', 'Unknown source')
+                            dat_created_at = source_info.get('created_at', 'Unknown date')
+                            self._print_verbose(f"  [INFO] Source: {dat_creation_info}")
+                            self._print_verbose(f"  [OK] geoip2fast.dat file created: {dat_created_at}")
                             
                     except (gzip.BadGzipFile, ValueError) as e:
                          self._print_verbose(f"  [FAIL] Validation failed: {str(e)}")
