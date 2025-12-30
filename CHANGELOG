@@ -18,6 +18,7 @@ License: MIT
 
 Author: blue101010
 What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025 (update by blue101010 )
+-  (Country + City + ASN + IPv6), geoip2fast-city-asn-ipv6.dat.gz database file is now default
 - enhance file validation and error handling during downloads to improve reliability
 - update documentation to reflect changes in package name and installation instructions
 - Changed package name to fgeoip2fast to avoid conflicts with geoip2fast.

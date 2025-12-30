@@ -67,7 +67,7 @@ import sys, os, ctypes, struct, socket, time, subprocess, random, binascii, func
 import urllib.request, urllib.error, urllib.parse, gzip, pickle, json, random, bisect, re, ipaddress
 import geoip2fast as _ 
 
-GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(_.__file__),"geoip2fast-asn.dat.gz")
+GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(_.__file__),"geoip2fast-city-asn-ipv6.dat.gz")
 
 class SafeUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
