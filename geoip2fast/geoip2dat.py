@@ -986,7 +986,29 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                             country_code = key
                             first_ip2int = CIDRInfo.first_ip2int
                             geoname_id = dictGeonameIDByISOCode[country_code]
-                            city_new_id = dictNamesCityByGeonameID[geoname_id]['city_new_id']
+                            
+                            # Fix for reserved networks: map to (geoname_id, 0.0, 0.0)
+                            city_key = (str(geoname_id), "0.0", "0.0")
+                            if city_key in dictUniqueCityLocations:
+                                city_new_id = dictUniqueCityLocations[city_key]
+                            else:
+                                city_new_id = len(listCityDetails)
+                                dictUniqueCityLocations[city_key] = city_new_id
+                                
+                                if str(geoname_id) in dictCityInfo:
+                                    info = dictCityInfo[str(geoname_id)]
+                                else:
+                                    info = {'city_name':'<unknown>',
+                                            'subdivision_1_iso_code':'',
+                                            'subdivision_1_name':'',
+                                            'subdivision_2_iso_code':'',
+                                            'subdivision_2_name':'',
+                                            'country_iso_code':country_code,
+                                           }
+                                
+                                city_str = f"{info['country_iso_code']}:{info['city_name']}|{info['subdivision_1_iso_code']}|{info['subdivision_1_name']}|{info['subdivision_2_iso_code']}|{info['subdivision_2_name']}|0.0|0.0"
+                                listCityDetails.append(city_str)
+
                             dictGeoCity[first_ip2int] = {'cidr':cidr,
                                                             'country_code':country_code,
                                                             'last_ip':CIDRInfo.last_ip2int,
