@@ -2,8 +2,8 @@ name: Update GeoIP2Fast dat files
 on:
   repository_dispatch:
   workflow_dispatch:
-  schedule:
-    - cron: 0 22 * * 2,5
+#  schedule:
+#    - cron: 0 22 * * 2,5
 jobs:
   run:
     runs-on: ubuntu-latest
