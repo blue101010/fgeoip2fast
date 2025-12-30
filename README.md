@@ -1,4 +1,4 @@
-# fgeoip2fast v1.2.2a based on GeoIP2Fast v1.2.2
+# fgeoip2fast v1.2.2a0 based on GeoIP2Fast v1.2.2
 
 fgeoip2fast is a fork with few tweaks based on GeoIP2Fast.
 

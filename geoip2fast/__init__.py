@@ -12,9 +12,9 @@
 :::::8 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 :::::..:::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 """
-__author__ = 'Ricardo Abuchaim'
+__author__ = 'blue101010 based on Ricardo Abuchaim work'
 __license__ = 'MIT'
-__version__ = "1.2.2"
-__releasedate__ = "20/Jun/2024"
+__version__ = "1.2.2a0"
+__releasedate__ = "29/Dec/2025"
 
 from geoip2fast.geoip2fast import GeoIP2Fast,GeoIPDetail,GeoIPDetailCity,UpdateGeoIP2Fast

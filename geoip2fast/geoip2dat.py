@@ -2,16 +2,17 @@
 # encoding: utf-8
 # -*- coding: utf-8 -*-
 """
-GeoIP2Dat v1.2.2 - DAT file update for GeoIP2Fast
+GeoIP2Dat v1.2.2a0 - DAT file update for GeoIP2Fast
 """
 """
 Author: Ricardo Abuchaim - ricardoabuchaim@gmail.com
-        https://github.com/rabuchaim/geoip2fast/
+Original Code :  https://github.com/rabuchaim/geoip2fast/
+Variant by: blue101010 : https://github.com/blue101010/fgeoip2fast
 
 License: MIT
 """
 __appid__   = "GeoIP2Dat"
-__version__ = "1.2.2"
+__version__ = "1.2.2a0"
 
 import sys, os, gzip, pickle, io, socket, struct, json, hashlib, csv, shutil
 import ctypes, subprocess
@@ -144,6 +145,7 @@ def get_mem_usage()->float:
             if ctypes.windll.psapi.GetProcessMemoryInfo(process_handle, ctypes.byref(counters), ctypes.sizeof(counters)):
                 memory_usage = counters.WorkingSetSize
                 return float((int(memory_usage) / 1024) / 1024)
+            return 0.0
         except:
             return 0.0
 ##───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────

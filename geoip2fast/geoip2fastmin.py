@@ -2,10 +2,11 @@
 # encoding: utf-8
 # -*- coding: utf-8 -*-
 """
-GeoIP2FastMin - Version v1.2.2
+GeoIP2FastMin - Version v1.2.2a0
 
 Author: Ricardo Abuchaim - ricardoabuchaim@gmail.com
-        https://github.com/rabuchaim/geoip2fast/
+Original Code :  https://github.com/rabuchaim/geoip2fast/
+Variant by: blue101010 : https://github.com/blue101010/fgeoip2fast
 
 License: MIT
 
@@ -43,7 +44,7 @@ and a few other things. Nothing that affects speed. Usage examples:
 class GeoIP2FastMin(object):
     import os, sys, bisect, pickle, ctypes, subprocess, gzip, json, random, socket, struct, binascii, time
     __appid__   = "GeoIP2Fast"
-    __version__ = "1.2.2"
+    __version__ = "1.2.2a0"
     GEOIP2FAST_DAT_GZ_FILE = os.path.join(os.path.dirname(__file__),"geoip2fast.dat.gz")    
     os.environ["PYTHONWARNINGS"]    = "ignore"
     os.environ["PYTHONIOENCODING"]  = "utf-8"        
@@ -452,6 +453,7 @@ class GeoIP2FastMin(object):
                 if self.ctypes.windll.psapi.GetProcessMemoryInfo(process_handle, self.ctypes.byref(counters), self.ctypes.sizeof(counters)):
                     memory_usage = counters.WorkingSetSize
                     return float((int(memory_usage) / 1024) / 1024)
+                return 0.0
             except:
                 return 0.0
     def self_test(self,max_ips=30):

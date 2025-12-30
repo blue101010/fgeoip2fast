@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='fgeoip2fast',
-    version='1.2.2a',
-    description='fgeoip2fast is the fastest GeoIP2 country/city/asn lookup library that supports IPv4 and IPv6. A search takes less than 0.00003 seconds. It has its own data file updated twice a week with Maxmind-Geolite2-CSV, supports IPv4/IPv6 and is Pure Python!',
+    version='1.2.2a0',
+    description='fgeoip2fast (based on geoip2fast) is the fastest GeoIP2 country/city/asn lookup library that supports IPv4 and IPv6. A search takes less than 0.00003 seconds. It has its own data file updated twice a week with Maxmind-Geolite2-CSV, supports IPv4/IPv6 and is Pure Python!',
     url='https://github.com/rabuchaim/geoip2fast',
     author='Ricardo Abuchaim',
     author_email='ricardoabuchaim@gmail.com',

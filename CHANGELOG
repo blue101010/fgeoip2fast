@@ -18,15 +18,16 @@ License: MIT
 
 Author: blue101010
 What's new in v1.2.2a0 fgeoip2fast v1.2.2a0 - 29/Dec/2025 (update by blue101010 )
--  (Country + City + ASN + IPv6), geoip2fast-city-asn-ipv6.dat.gz database file is now default
-- enhance file validation and error handling during downloads to improve reliability
-- update documentation to reflect changes in package name and installation instructions
-- Changed package name to fgeoip2fast to avoid conflicts with geoip2fast.
-- Enhance error handling and add SHA256 checksum verification during file downloads to ensure data integrity.
-- Update documentation to reflect recent changes and improvements in the library.
-- CLI Enhancements: Improved command-line interface with support for long arguments (e.g., `--verbose`, `--dns`, `--help`), added an examples section to help output, and updated usage instructions.
-- Installation Improvements: Added `kali-install.py` for compliant installation on Kali Linux/Debian (handling PEP 668), and modernized `setup.py` by removing deprecated code and fixing license classifiers.
-- Security & Testing: Implemented safe unpickling and path traversal protection in update methods, and added `testfgeoip.py` for functional testing.
+-1- bash script (generate_db.sh) to automate the generation of the .dat.gz files using Maxmind's GeoLite2 CSV files
+-2- (Country + City + ASN + IPv6), geoip2fast-city-asn-ipv6.dat.gz database file is now default
+-3- enhance file validation and error handling during downloads to improve reliability
+-4- update documentation to reflect changes in package name and installation instructions
+-5- Changed package name to fgeoip2fast to avoid conflicts with geoip2fast.
+-6- Enhance error handling and add SHA256 checksum verification during file downloads to ensure data integrity.
+-7- CLI Enhancements - Improved command-line interface with support for long arguments (e.g., `--verbose`, `--dns`, `--help`), added an examples section to help output, and updated usage instructions.
+-8- Installation Improvements Added `kali-install.py` for compliant installation on Kali Linux/Debian (handling PEP 668), and modernized `setup.py` by removing deprecated code and fixing license classifiers.
+-9- Typing and attributes issues fixed
+-SEC1 !! - Security & Testing - Implemented safe unpickling and path traversal protection in update methods, and added `testfgeoip.py` for functional testing.
 
 
 What's new in v1.2.2 - 20/Jun/2024

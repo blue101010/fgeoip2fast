@@ -2,10 +2,11 @@
 # encoding: utf-8
 # -*- coding: utf-8 -*-
 """
-GeoIP2FastMin - Version v1.2.2
+GeoIP2FastMin - Version v1.2.2a0
 
 Author: Ricardo Abuchaim - ricardoabuchaim@gmail.com
-        https://github.com/rabuchaim/geoip2fast/
+Original Code :  https://github.com/rabuchaim/geoip2fast/
+Variant by: blue101010 : https://github.com/blue101010/fgeoip2fast
 
 License: MIT
 
@@ -40,7 +41,7 @@ and a few other things. Nothing that affects speed. Usage examples:
 
 """    
 class GeoIP2FastMin:
-	import os,sys,bisect,pickle,ctypes,subprocess,gzip,json,random,socket,struct,binascii,time;__appid__='GeoIP2Fast';__version__='1.2.2';GEOIP2FAST_DAT_GZ_FILE=os.path.join(os.path.dirname(__file__),'geoip2fast.dat.gz');os.environ['PYTHONWARNINGS']='ignore';os.environ['PYTHONIOENCODING']='utf-8';GEOIP_ECCODE_PRIVATE_NETWORKS,GEOIP_ECCODE_NETWORK_NOT_FOUND='--','--';GEOIP_ECCODE_INVALID_IP,GEOIP_ECCODE_LOOKUP_INTERNAL_ERROR='','';GEOIP_NOT_FOUND_STRING='<not found in database>';GEOIP_INTERNAL_ERROR_STRING='<internal lookup error>';GEOIP_INVALID_IP_STRING='<invalid ip address>';numIPsv4=sorted([2**A for A in range(0,33)],reverse=True);numIPsv6=sorted([2**A for A in range(0,129)],reverse=True);MAX_IPv4=numIPsv4[0]
+	import os,sys,bisect,pickle,ctypes,subprocess,gzip,json,random,socket,struct,binascii,time;__appid__='GeoIP2Fast';__version__='1.2.2a0';GEOIP2FAST_DAT_GZ_FILE=os.path.join(os.path.dirname(__file__),'geoip2fast.dat.gz');os.environ['PYTHONWARNINGS']='ignore';os.environ['PYTHONIOENCODING']='utf-8';GEOIP_ECCODE_PRIVATE_NETWORKS,GEOIP_ECCODE_NETWORK_NOT_FOUND='--','--';GEOIP_ECCODE_INVALID_IP,GEOIP_ECCODE_LOOKUP_INTERNAL_ERROR='','';GEOIP_NOT_FOUND_STRING='<not found in database>';GEOIP_INTERNAL_ERROR_STRING='<internal lookup error>';GEOIP_INVALID_IP_STRING='<invalid ip address>';numIPsv4=sorted([2**A for A in range(0,33)],reverse=True);numIPsv6=sorted([2**A for A in range(0,129)],reverse=True);MAX_IPv4=numIPsv4[0]
 	def __init__(A,verbose=False,geoip2fast_data_file=''):
 		C=verbose;B=geoip2fast_data_file;A.name='GeoIP2FastMin';A.ipv6,A.city,A.asn,A.is_loaded=False,False,False,False;A.data_file,A._load_data_text='','';A.verbose=C
 		if C==False:A._print_verbose=A.__print_verbose_empty

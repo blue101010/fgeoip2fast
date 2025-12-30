@@ -2,10 +2,11 @@
 # encoding: utf-8
 # -*- coding: utf-8 -*-
 """
-fgeoip2fast - Version v1.2.2 based on GeoIP2Fast
+fgeoip2fast - Version v1.2.2a0 based on GeoIP2Fast
 
 Author: Ricardo Abuchaim - ricardoabuchaim@gmail.com
-        https://github.com/rabuchaim/geoip2fast/
+Original Code :  https://github.com/rabuchaim/geoip2fast/
+Variant by: blue101010 : https://github.com/blue101010/fgeoip2fast
 
 License: MIT
 
@@ -20,6 +21,7 @@ License: MIT
 :::::..:::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 What's new in v1.2.2 - 20/Jun/2024
+- bash script to automate the generation of the .dat.gz files using Maxmind's GeoLite2 CSV files
 - DAT files updated with MAXMIND:GeoLite2-CSV_20240618
 - Removed the line "sys.tracebacklimit = 0" that was causing some problems 
   in Django. This line is unnecessary (https://github.com/rabuchaim/geoip2fast/issues/10)
@@ -61,7 +63,7 @@ What's new in v1.2.2 - 20/Jun/2024
 - Put some flowers
 """
 __appid__   = "fgeoip2fast"
-__version__ = "1.2.2"
+__version__ = "1.2.2a0"
 
 import sys, os, ctypes, struct, socket, time, subprocess, random, binascii, functools, hashlib
 import urllib.request, urllib.error, urllib.parse, gzip, pickle, json, random, bisect, re, ipaddress
@@ -157,6 +159,7 @@ def get_mem_usage()->float:
             if ctypes.windll.psapi.GetProcessMemoryInfo(process_handle, ctypes.byref(counters), ctypes.sizeof(counters)):
                 memory_usage = counters.WorkingSetSize
                 return float((int(memory_usage) / 1024) / 1024)
+            return 0.0
         except:
             return 0.0
 ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -255,8 +258,8 @@ class CityDetail(object):
             "name": self.name,
             "subdivision_code": self.subdivision_code,
             "subdivision_name": self.subdivision_name,
-            "latitude": self.latitude,
-            "longitude": self.longitude
+            "latitude": float(self.latitude) if self.latitude else 0.0,
+            "longitude": float(self.longitude) if self.longitude else 0.0
         }
 ##──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -748,7 +751,7 @@ class GeoIP2Fast(object):
     def _country_lookup(self,match_root,match_chunk):
         try:
             country_code_index = mainListIDCountryCodes[match_root][match_chunk]
-            country_code, country_name = mainListNamesCountry[country_code_index].split(":")
+            country_code, country_name = mainListNamesCountry[country_code_index].split(":", 1)
             is_private = country_code_index < 16
             country_code = self.error_code_private_networks if is_private else country_code
             return country_code, country_name, is_private
@@ -770,7 +773,7 @@ class GeoIP2Fast(object):
     def _city_lookup(self,match_root,match_chunk):
         try:
             code = mainListIDCity[match_root][match_chunk]
-            country_code, city_name = mainListNamesCity[code].split(":")
+            country_code, city_name = mainListNamesCity[code].split(":", 1)
             country_code, country_name, is_private = self._city_country_name_lookup(country_code)            
             city_info = CityDetail(city_name)
             return country_code, country_name, city_info, is_private
@@ -911,11 +914,11 @@ class GeoIP2Fast(object):
         Return: True or False
         """
         try:
-            self._main_index_lookup.cache_clear()
-            self._asn_lookup.cache_clear()
-            self._country_lookup.cache_clear()
-            self._city_country_name_lookup.cache_clear()
-            self._city_lookup.cache_clear()
+            getattr(self._main_index_lookup, 'cache_clear', lambda: None)()
+            getattr(self._asn_lookup, 'cache_clear', lambda: None)()
+            getattr(self._country_lookup, 'cache_clear', lambda: None)()
+            getattr(self._city_country_name_lookup, 'cache_clear', lambda: None)()
+            getattr(self._city_lookup, 'cache_clear', lambda: None)()
             return True
         except Exception as ERR:
             return False
@@ -1083,6 +1086,7 @@ class GeoIP2Fast(object):
             old_last_iplong = 0
             for N in range(len(joinedFirstIPList)):
                 first_iplong = joinedFirstIPList[N]
+                last_iplong = 0
                 if (first_iplong > numIPsv4[0]) and (with_ipv6 == False):
                     break
                 if (first_iplong >= numIPsv4[0]) and (old_last_iplong == numIPsv4[0]) and (with_ipv6 == True):
@@ -1813,7 +1817,7 @@ def main_function():
         sys.exit(0)
     if '--random-test' in sys.argv or '--randomtest' in sys.argv:
         geoip = GeoIP2Fast(geoip2fast_data_file=geoip2fast_datafile,verbose=True)
-        num_ips = next((re.match('^[0-9]*$',item).group(0) for item in sys.argv if re.match('^[0-9]*$',item)),1000000)
+        num_ips = next((item for item in sys.argv if item.isdigit()), 1000000)
         print("")
         geoip.random_test(max_ips=int(num_ips),with_ipv6=with_ipv6)
         print("")
@@ -1825,14 +1829,14 @@ def main_function():
         sys.exit(0)
     if '--self-test-city' in sys.argv or '--selftestcity' in sys.argv:
         geoip = GeoIP2Fast(geoip2fast_data_file=geoip2fast_datafile,verbose=True)
-        num_ips = next((re.match('^[0-9]*$',item).group(0) for item in sys.argv if re.match('^[0-9]*$',item)),30)
+        num_ips = next((item for item in sys.argv if item.isdigit()), 30)
         print("\nStarting a self-test...\n")
         geoip.self_test(with_city=True,max_ips=int(num_ips),with_ipv6=with_ipv6)
         print("")
         sys.exit(0)
     if '--self-test' in sys.argv or '--selftest' in sys.argv:
         geoip = GeoIP2Fast(geoip2fast_data_file=geoip2fast_datafile,verbose=True)
-        num_ips = next((re.match('^[0-9]*$',item).group(0) for item in sys.argv if re.match('^[0-9]*$',item)),30)
+        num_ips = next((item for item in sys.argv if item.isdigit()), 30)
         print("\nStarting a self-test...\n")
         geoip.self_test(max_ips=int(num_ips),with_ipv6=with_ipv6)
         print("")
@@ -1867,6 +1871,7 @@ Examples:
   {__appid__} 8.8.8.8
   {__appid__} -v -d 8.8.8.8,1.1.1.1
   {__appid__} --verbose --dns 8.8.8.8
+  {__appid__} geoip2fast.dat.gz 128.101.101.101  (using a custom database file generated via generate_db.sh)
   {__appid__} --info
   {__appid__} --update-all
 
