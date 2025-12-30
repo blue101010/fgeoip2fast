@@ -553,14 +553,16 @@ class GeoIP2Fast(object):
                     mainIndex,mainListNamesCountry,mainListNamesCity,mainListFirstIP,mainListIDCity,mainListNetlength = mainDatabase
                 elif __DAT_VERSION__ == 121:
                     CityDetail.__init__.__code__ = CityDetail.__init__121.__code__
-                    pass
+                    mainIndex,mainListNamesCountry,mainListNamesCity,mainListFirstIP,mainListIDCity,mainListNetlength = mainDatabase
             ##──── CITY WITH ASN ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
             elif self.city == True and self.asn == True:
                 if __DAT_VERSION__ == 120:
                     mainIndex,mainIndexASN,mainListNamesCountry,mainListNamesCity,mainListNamesASN,\
                     mainListFirstIP,mainListFirstIPASN,mainListIDCity,mainListIDASN,mainListNetlength,mainListNetlengthASN = mainDatabase
                 elif __DAT_VERSION__ == 121:
-                    pass
+                    CityDetail.__init__.__code__ = CityDetail.__init__121.__code__
+                    mainIndex,mainIndexASN,mainListNamesCountry,mainListNamesCity,mainListNamesASN,\
+                    mainListFirstIP,mainListFirstIPASN,mainListIDCity,mainListIDASN,mainListNetlength,mainListNetlengthASN = mainDatabase
 
             self.ipv6 = mainIndex[-1] > numIPsv4[0]
             geoipCountryNamesDict = {item.split(":")[0]:item.split(":")[1] for item in mainListNamesCountry}

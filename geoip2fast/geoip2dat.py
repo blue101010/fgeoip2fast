@@ -47,7 +47,7 @@ LIST_SLICE_SIZE                 = 100
 ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 AVAILABLE_LANGUAGES     = ['de','en','es','fr','ja','pt-BR','ru','zh-CN']
 
-__DAT_VERSION__         = 120
+__DAT_VERSION__         = 121
 terminalWidth           = 100
 
 sys.tracebacklimit      = 0
@@ -751,20 +751,31 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
 
         ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
         dictGeoCity = {}
-        dictNamesCityByGeonameID = {}
+        dictCityInfo = {} # Was dictNamesCityByGeonameID
+        dictUniqueCityLocations = {} # New: (geoname_id, lat, long) -> city_new_id
+        listCityDetails = [] # New: Stores the final city strings
+        
         if city_dir != "" and country_dir == "":
             logMemory(f"%.2f MiB"%(get_mem_usage()))
-            dictNamesCityByGeonameID['0'] = {'city_name':'<unknown>',
-                                                    'city_new_id':0,
-                                                    'subdivision_1_iso_code':'',
-                                                    'subdivision_1_name':'',
-                                                    'subdivision_2_iso_code':'',
-                                                    'subdivision_2_name':'',
-                                                    'country_iso_code':'99',
-                                                    }
+            
+            # Initialize unknown city
+            dictCityInfo['0'] = {'city_name':'<unknown>',
+                                 'subdivision_1_iso_code':'',
+                                 'subdivision_1_name':'',
+                                 'subdivision_2_iso_code':'',
+                                 'subdivision_2_name':'',
+                                 'country_iso_code':'99',
+                                }
+            
+            # Add unknown city to unique locations and list
+            # Format: Country:Name|Sub1|Sub1Name|Sub2|Sub2Name|Lat|Long
+            unknown_city_str = "99:<unknown>|||||0.0|0.0"
+            listCityDetails.append(unknown_city_str)
+            dictUniqueCityLocations[('0', '0.0', '0.0')] = 0
+            
             dictCountryByISOCode = {}
             dictCountryByGeonameID = {}
-            city_new_id = 0
+            
             log(f"- Starting read lines from CSV file {MM_CITY_LOCATIONS_FILENAME.replace('XX',language)}")
             with elapsed_timer() as elapsed:
                 try:
@@ -782,23 +793,14 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                                     country_iso_code, country_name = continent_code, continent_name
                                     if country_iso_code == "AS":
                                         country_iso_code = "ASIA"
-                                city_new_id += 1
-                                # district_code = f"{subdivision_1_iso_code}" if subdivision_1_iso_code and len(subdivision_1_iso_code) == 2 and not subdivision_1_iso_code.isdigit() else ""
-                                # district_name = f"{subdivision_1_name}" if subdivision_1_name else ""
-                                # if not city_name:
-                                #     city_name = district_name if subdivision_1_name else district_code[1:]
-                                # else:
-                                #     city_name += ", "+district_name
-                                # if subdivision_2_name:
-                                #     city_name += ", "+subdivision_2_name
-                                dictNamesCityByGeonameID[geoname_id] = {'city_name':city_name,
-                                                                        'city_new_id':city_new_id,
-                                                                        'subdivision_1_iso_code':subdivision_1_iso_code,
-                                                                        'subdivision_1_name':subdivision_1_name,
-                                                                        'subdivision_2_iso_code':subdivision_2_iso_code,
-                                                                        'subdivision_2_name':subdivision_2_name,
-                                                                        'country_iso_code':country_iso_code,
-                                                                        }
+                                
+                                dictCityInfo[geoname_id] = {'city_name':city_name,
+                                                            'subdivision_1_iso_code':subdivision_1_iso_code,
+                                                            'subdivision_1_name':subdivision_1_name,
+                                                            'subdivision_2_iso_code':subdivision_2_iso_code,
+                                                            'subdivision_2_name':subdivision_2_name,
+                                                            'country_iso_code':country_iso_code,
+                                                            }
                                 dictCountryByGeonameID[geoname_id] = country_iso_code
                                 dictCountryByISOCode[country_iso_code] = country_name
                             except Exception as ERR:
@@ -821,29 +823,27 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                                 new_networks += 1
                             else:
                                 continue
-                            city_new_id += 1
-                            dictNamesCityByGeonameID[geoname_id] = {'city_name':"",
-                                                                    'city_new_id':city_new_id,
-                                                                    'subdivision_1_iso_code':"",
-                                                                    'subdivision_1_name':"",
-                                                                    'subdivision_2_iso_code':"",
-                                                                    'subdivision_2_name':"",
-                                                                    'country_iso_code':code,
-                                                                    }
-                            dictCountryByGeonameID[geoname_id] = code                            
+                            
+                            dictCityInfo[str(geoname_id)] = {'city_name':"",
+                                                             'subdivision_1_iso_code':"",
+                                                             'subdivision_1_name':"",
+                                                             'subdivision_2_iso_code':"",
+                                                             'subdivision_2_name':"",
+                                                             'country_iso_code':code,
+                                                            }
+                            dictCountryByGeonameID[str(geoname_id)] = code                            
                             dictCountryByISOCode[code] = desc
                 log(f"- Added {str(new_networks)} private/reserved networks... done! {timer(elapsed())}")
                 dictCountryByISOCode["99"] = '<not found in database>'
-                dictCountryByGeonameID[geoname_id+1] = "99"
-                city_new_id += 1
-                dictNamesCityByGeonameID[geoname_id+1] = {  'city_name':"<not found in database>",
-                                                            'city_new_id':city_new_id,
-                                                            'subdivision_1_iso_code':"",
-                                                            'subdivision_1_name':"",
-                                                            'subdivision_2_iso_code':"",
-                                                            'subdivision_2_name':"",
-                                                            'country_iso_code':"99",
-                                                       }
+                dictCountryByGeonameID[str(geoname_id+1)] = "99"
+                
+                dictCityInfo[str(geoname_id+1)] = { 'city_name':"<not found in database>",
+                                                    'subdivision_1_iso_code':"",
+                                                    'subdivision_1_name':"",
+                                                    'subdivision_2_iso_code':"",
+                                                    'subdivision_2_name':"",
+                                                    'country_iso_code':"99",
+                                                  }
                 log(f"- Added 1 location '99':'<not found in database>'... done! {timer(elapsed())}")
             except Exception as ERR:
                 logError(f"Failed at country location add new networks %s"%(str(ERR)))
@@ -853,8 +853,8 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                 dictGeonameIDByISOCode = dict(sorted(dictGeonameIDByISOCode.items(),key=lambda x:x[0], reverse=False))
                 # log(f"- Sorting dictGeonameIDByISOCode by GeonameID... done! {timer(elapsed_debug())}")
             with elapsed_timer() as elapsed_debug:
-                dictNamesCityByGeonameID = dict(sorted(dictNamesCityByGeonameID.items(),key=lambda x:int(x[0]), reverse=False))
-                # log(f"- Sorting dictNamesCityByGeonameID by GeonameID... done! {timer(elapsed_debug())}")
+                dictCityInfo = dict(sorted(dictCityInfo.items(),key=lambda x:int(x[0]), reverse=False))
+                # log(f"- Sorting dictCityInfo by GeonameID... done! {timer(elapsed_debug())}")
             with elapsed_timer() as elapsed_debug:
                 dictCountryByISOCode = dict(sorted(dictCountryByISOCode.items(),key=lambda x:x[0], reverse=False))
                 # log(f"- Sorting dictCountryByISOCode by ISO Country Code... done! {timer(elapsed_debug())}")
@@ -867,9 +867,9 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                         json.dump(dictGeonameIDByISOCode,f,indent=3,sort_keys=False,ensure_ascii=False)
                     logDebug(f"Saving debug file dictGeonameIDByISOCode.json with {len(dictGeonameIDByISOCode.keys())} items... done! {timer(elapsed_debug())}")
                 with elapsed_timer() as elapsed_debug:
-                    with open("dictNamesCityByGeonameID.json","w") as f:
-                        json.dump(dictNamesCityByGeonameID,f,indent=3,sort_keys=False,ensure_ascii=False)
-                    logDebug(f"Saving debug file dictNamesCityByGeonameID.json with {len(dictNamesCityByGeonameID.keys())} items... done! {timer(elapsed_debug())}")
+                    with open("dictCityInfo.json","w") as f:
+                        json.dump(dictCityInfo,f,indent=3,sort_keys=False,ensure_ascii=False)
+                    logDebug(f"Saving debug file dictCityInfo.json with {len(dictCityInfo.keys())} items... done! {timer(elapsed_debug())}")
                 with elapsed_timer() as elapsed_debug:
                     with open("dictCountryByGeonameID.json","w") as f:
                         json.dump(dictCountryByGeonameID,f,indent=3,sort_keys=False,ensure_ascii=False)
@@ -913,16 +913,41 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                                             country_code = "XX"
                                         firstIP = CIDRInfo.first_ip2int
                                         lastIP = CIDRInfo.last_ip2int
-                                        city_new_id = dictNamesCityByGeonameID[geoname_id]['city_new_id']
+                                        
+                                        # New Logic for City ID with Lat/Long
+                                        if not latitude: latitude = "0.0"
+                                        if not longitude: longitude = "0.0"
+                                        
+                                        city_key = (geoname_id, latitude, longitude)
+                                        
+                                        if city_key in dictUniqueCityLocations:
+                                            city_new_id = dictUniqueCityLocations[city_key]
+                                        else:
+                                            city_new_id = len(listCityDetails)
+                                            dictUniqueCityLocations[city_key] = city_new_id
+                                            
+                                            # Get base info
+                                            if geoname_id in dictCityInfo:
+                                                info = dictCityInfo[geoname_id]
+                                            else:
+                                                # Fallback if geoname_id not found in locations file
+                                                info = {'city_name':'<unknown>',
+                                                        'subdivision_1_iso_code':'',
+                                                        'subdivision_1_name':'',
+                                                        'subdivision_2_iso_code':'',
+                                                        'subdivision_2_name':'',
+                                                        'country_iso_code':country_code,
+                                                       }
+                                            
+                                            # Construct string: Country:Name|Sub1|Sub1Name|Sub2|Sub2Name|Lat|Long
+                                            city_str = f"{info['country_iso_code']}:{info['city_name']}|{info['subdivision_1_iso_code']}|{info['subdivision_1_name']}|{info['subdivision_2_iso_code']}|{info['subdivision_2_name']}|{latitude}|{longitude}"
+                                            listCityDetails.append(city_str)
+
                                         dictGeoCity[firstIP] = {'cidr':cidr,
                                                                 'country_code':country_code,
                                                                 'last_ip':lastIP,
                                                                 'geoname_id':geoname_id,
                                                                 'city_new_id':city_new_id,
-                                                                #    'registered_country_id':registered_country_id, 
-                                                                #    'represented_country_id':represented_country_id,
-                                                                #    'is_anonymous_proxy':bool(int(is_anonymous_proxy)),
-                                                                #    'is_satellite_provider': bool(int(is_satellite_provider)),
                                                                 }
                                     except Exception as ERR:
                                         logError(f"Failed to process line {fields} - {str(ERR)}")
@@ -1030,7 +1055,7 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
         logMemory(f"%.2f MiB"%(get_mem_usage()))
         with elapsed_timer() as elapsed:
             try:
-                listNamesCity = [f"{val['country_iso_code']}:{val['city_name']}|{val['subdivision_1_iso_code']}|{val['subdivision_1_name']}|{val['subdivision_2_iso_code']}|{val['subdivision_2_name']}" for key,val in dictNamesCityByGeonameID.items()]
+                listNamesCity = listCityDetails
                 log(f"- List City Names with {len(listNamesCity)} items... done! {timer(elapsed())}")
             except Exception as ERR:
                 logError(f"Failed to create listNamesCity %s"%(str(ERR)))
@@ -1040,7 +1065,9 @@ def run(country_dir,asn_dir,city_dir,output_dir,language="en",source_info="",deb
                     with open("listNamesCity.txt","w") as f:
                         f.writelines(str("\n".join(listNamesCity)))
                     logDebug(f"Saving listNamesCity.txt with {len(listNamesCity)} items... done! {timer(elapsed_debug())}")
-            del dictNamesCityByGeonameID
+            del dictCityInfo
+            del dictUniqueCityLocations
+            del listCityDetails
         logMemory(f"%.2f MiB"%(get_mem_usage()))
         with elapsed_timer() as elapsed:
             try:                
