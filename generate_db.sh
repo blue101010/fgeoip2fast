@@ -130,7 +130,7 @@ convert_files() {
 
     echo "Running conversion..."
     # Run the python module
-    python -m geoip2fast.geoip2dat --city-dir "$CITY_DIR" --asn-dir "$ASN_DIR" --with-ipv6
+    python -m geoip2fast.geoip2dat --city-dir "$CITY_DIR" --asn-dir "$ASN_DIR" --with-ipv6 --output-dir .
 }
 
 # Main Logic
@@ -141,7 +141,7 @@ if [ "$#" -ge 2 ]; then
     CITY_DIR="$1"
     ASN_DIR="$2"
     shift 2
-    python -m geoip2fast.geoip2dat --city-dir "$CITY_DIR" --asn-dir "$ASN_DIR" --with-ipv6 "$@"
+    python -m geoip2fast.geoip2dat --city-dir "$CITY_DIR" --asn-dir "$ASN_DIR" --with-ipv6 --output-dir . "$@"
     exit $?
 fi
 
