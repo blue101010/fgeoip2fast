@@ -1,8 +1,19 @@
+"""
+testfgeoip.py
+
+This script tests the functionality of the GeoIP2Fast library.
+It initializes the GeoIP2Fast object and performs IP lookups.
+It can be run with specific IP addresses as arguments or without arguments to run a default set of tests.
+
+Usage:
+    python testfgeoip.py [IP_ADDRESS_1] [IP_ADDRESS_2] ...
+    python testfgeoip.py
+"""
 from geoip2fast.geoip2fast import GeoIP2Fast
 import sys
 import os
 
-def test_functionality():
+def test_functionality(ips=None):
     print("Initializing GeoIP2Fast...")
     try:
         # Try to load city database if available
@@ -18,14 +29,17 @@ def test_functionality():
         return
 
     print("\nTesting IP Lookups:")
-    ips_to_test = [
-        '8.8.8.8',          # Google DNS (US)
-        '1.1.1.1',          # Cloudflare DNS
-        '200.204.0.10',     # Brazil IP
-        '127.0.0.1',        # Localhost
-        '10.0.0.1',         # Private
-        'invalid_ip'        # Invalid
-    ]
+    if ips:
+        ips_to_test = ips
+    else:
+        ips_to_test = [
+            '8.8.8.8',          # Google DNS (US)
+            '1.1.1.1',          # Cloudflare DNS
+            '200.204.0.10',     # Brazil IP
+            '127.0.0.1',        # Localhost
+            '10.0.0.1',         # Private
+            'invalid_ip'        # Invalid
+        ]
 
     for ip in ips_to_test:
         print(f"\nLookup for {ip}:")
@@ -58,4 +72,7 @@ def test_functionality():
         print(f"  Error getting info: {e}")
 
 if __name__ == "__main__":
-    test_functionality()
+    if len(sys.argv) > 1:
+        test_functionality(sys.argv[1:])
+    else:
+        test_functionality()

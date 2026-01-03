@@ -146,22 +146,25 @@ def get_mem_usage()->float:
                     ("PeakPagefileUsage", ctypes.c_size_t)]
     
     ##──── LINUX & MACOS ─────────────
-    try: 
-        result = subprocess.check_output(['ps', '-p', str(os.getpid()), '-o', 'rss='])
-        return float(int(result.strip()) / 1024)
-    except:
-        ##──── WINDOWS ─────────────
-        try:
-            pid = ctypes.windll.kernel32.GetCurrentProcessId()
-            process_handle = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
-            counters = PROCESS_MEMORY_COUNTERS()
-            counters.cb = ctypes.sizeof(PROCESS_MEMORY_COUNTERS)
-            if ctypes.windll.psapi.GetProcessMemoryInfo(process_handle, ctypes.byref(counters), ctypes.sizeof(counters)):
-                memory_usage = counters.WorkingSetSize
-                return float((int(memory_usage) / 1024) / 1024)
-            return 0.0
+    if sys.platform != 'win32':
+        try: 
+            result = subprocess.check_output(['ps', '-p', str(os.getpid()), '-o', 'rss='])
+            return float(int(result.strip()) / 1024)
         except:
-            return 0.0
+            pass
+
+    ##──── WINDOWS ─────────────
+    try:
+        pid = ctypes.windll.kernel32.GetCurrentProcessId()
+        process_handle = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, False, pid)
+        counters = PROCESS_MEMORY_COUNTERS()
+        counters.cb = ctypes.sizeof(PROCESS_MEMORY_COUNTERS)
+        if ctypes.windll.psapi.GetProcessMemoryInfo(process_handle, ctypes.byref(counters), ctypes.sizeof(counters)):
+            memory_usage = counters.WorkingSetSize
+            return float((int(memory_usage) / 1024) / 1024)
+        return 0.0
+    except:
+        return 0.0
 ##────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 ##──── IP MANIPULATION FUNCTIONS ─────────────────────────────────────────────────────────────────────────────────────────────────
